@@ -9,8 +9,36 @@
 #include "../include/main.h"
 
 void main() {
-    // Players conections
-    printf("Hello world!");
 
-    
+    // Players conections
+        // Hote - Serveur - Premier créé
+        // Suivants , Se connecte à l'hote
+
+    // Pseudo requests
+        // Mémoire partagée
+        // Chacun stock le sien
+
+    // Choose your character
+        // @ & § 
+        // Memoire partagée
+
+        //Ines&
+        //Tim§
+
+    // Game
+        // Show map
+        // Edit map
+        // Edit map when input
+        // Players movement
+        // Go back
+        // Boxes
+        // Destination
+        // Walls
+            // Dont go forward
+        // Victory
+
+
+        // Lock detection
+
+
 }
