@@ -16,6 +16,7 @@
 #define MAX_NUMBER_PLAYER 3
 #define MAX_PLAYER_NAME_LENGTH 64
 #define KEY_FILE "./key/key"
+#define FORBIDDEN_CHAR  "#@.*+"
 
 
 static inline void ErrorInputStringTooLong();
@@ -27,7 +28,6 @@ typedef struct {
     pid_t pid;
 } Player;
 
-
 typedef struct {
     unsigned int numberPlayers;
     Player playersTab[MAX_NUMBER_PLAYER];
@@ -37,3 +37,8 @@ typedef struct {
   long mtype; 
   Player mtext;
 } WrapPlayer;
+
+typedef struct {
+  long mtype; 
+  Party mtext;
+} WrapParty;
