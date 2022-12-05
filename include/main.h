@@ -9,8 +9,13 @@
 #include <fcntl.h>
 #include <string.h>
 
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <errno.h>
+
 #define MAX_NUMBER_PLAYER 3
 #define MAX_PLAYER_NAME_LENGTH 64
+#define KEY_FILE "./key/key"
 
 
 static inline void ErrorInputStringTooLong();
@@ -19,6 +24,7 @@ static inline void ClearInputBuffer();
 typedef struct {
     char name[MAX_PLAYER_NAME_LENGTH];
     char character;
+    pid_t pid;
 } Player;
 
 
@@ -27,4 +33,7 @@ typedef struct {
     Player playersTab[MAX_NUMBER_PLAYER];
 } Party;
 
-
+typedef struct {
+  long mtype; 
+  Player mtext;
+} WrapPlayer;

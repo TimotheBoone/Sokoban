@@ -1,9 +1,9 @@
 c=gcc
 
-all : main
+all : server client
 
 % : src/%.c
 	$(c) $< -o $@ -pthread
 
 clean : 
-	rm main
+	rm server client
