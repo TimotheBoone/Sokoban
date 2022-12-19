@@ -49,7 +49,8 @@ int main(int argc, char const* argv[]) {
 
     // Store player
   }
-
+  /****************************************************** JEU ***************************************************************************/
+  
   // Boite aux lettres
   // Chacun stock le sien
 

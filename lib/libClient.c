@@ -107,4 +107,4 @@ void SendPlayerInAWrap(int msgId, WrapPlayer wrap) {
     }
 }
 
-Party WaitForAParty
+//Party WaitForAParty

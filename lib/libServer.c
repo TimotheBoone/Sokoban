@@ -1,7 +1,6 @@
 #include "../include/server.h"
 
 void SendPartyInAWrap(int msgId, WrapParty wrapParty, pid_t receiver) {
-    //wrapParty.mtype = wrapLobby.mtext.playersTab[(int) i].pid;
     if (msgsnd(msgId, &wrapParty, sizeof(wrapParty.mtext), 0) == -1) {
         perror("[ERROR] Erreur lors de l'écriture du message");
         exit(EXIT_FAILURE);
@@ -31,6 +30,7 @@ int CreateMsg(key_t key) {
 void InitParty(Party* party) {
     (*party).numberPlayers = 0;
 }
+
 
 Player WaitForAPlayer(int msgId) {
     WrapPlayer player;
