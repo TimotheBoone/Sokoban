@@ -9,10 +9,11 @@
  */
 # include "../include/client.h"
 
-int ConnectToMsg(key_t key) {
-    int msgId;
+void* ThreadConnectsToMsg(void* arg) {
 
-    msgId = msgget(key, IPC_EXCL);
+    key_t key = (key_t) (__intptr_t) arg;
+
+    int msgId = msgget(key, IPC_EXCL);
     if (msgId == -1) {
         perror("[ERROR] Erreur lors de la recherche de la boite aux lettres");
         exit(EXIT_FAILURE);
@@ -23,7 +24,7 @@ int ConnectToMsg(key_t key) {
         }
     }
 
-    return msgId;
+    return (void*) (__intptr_t) msgId;
 }
 
 void InitPlayer(Player* player) {
@@ -38,9 +39,11 @@ void ErrorInputStringTooLong() {
     fflush(stdin);
 }
 
-void AskPlayerInfos(Player* player) {
+void AskPlayerInfos(Player* player, int shmId) {
     char playerNameBuffer[MAX_PLAYER_NAME_LENGTH];
     char playerCharacterBuffer[1];
+    //char *forbiddenString;
+
     do {
         printf("What's your player name ?\n");
 
@@ -66,9 +69,10 @@ void AskPlayerInfos(Player* player) {
         }
 
     } while (strlen((*player).name) <= 0);
-
-    // do {
-    printf("Choose your character? (except #, @,. ,*, +) \n");
+    printf("main shm : %d\n", shmId);
+    //do {
+    //strcpy(forbiddenString, GetForbiddenString(shmId));
+    //printf("Choose your character? (except %s) \n", GetForbiddenString(shmId));
     fgets(playerCharacterBuffer, 2, stdin);
 
     // We research char in this string
@@ -78,11 +82,10 @@ void AskPlayerInfos(Player* player) {
     }
     else {
         printf(
-            "[ERROR] You're not allowed to use this character ! Please choose "
-            "another one.\n");
+            "[ERROR] You're not allowed to use this character ! Please choose another one.\n");
     }
 
-    //} while (sizeof(me.name) >= 0);
+    //} while (strlen((*player).character) <= 0);
 }
 
 WrapPlayer Wrap(Player player) {
@@ -107,4 +110,104 @@ void SendPlayerInAWrap(int msgId, WrapPlayer wrap) {
     }
 }
 
-//Party WaitForAParty
+Party WaitForAParty(int msgId) {
+    WrapParty party;
+
+    if (msgrcv(msgId, &party, sizeof(party.mtext), getpid(), 0) == -1) {
+        perror("[ERROR] Erreur lors de la lecture du message du serveur");
+        exit(EXIT_FAILURE);
+    }
+
+    return party.mtext;
+}
+
+Party WaitForAFullParty(int msgId) {
+    int i;
+    Party party;
+    do {
+        party = WaitForAParty(msgId);
+        if (party.numberPlayers < MAX_NUMBER_PLAYER) {
+            printf("Waiting for other players (%d/%d)...\n", party.numberPlayers, MAX_NUMBER_PLAYER);
+        }
+    } while (party.numberPlayers < MAX_NUMBER_PLAYER);
+    printf("Joueurs dans la partie :\n");
+    for (i = 0; i < MAX_NUMBER_PLAYER; i++) {
+        printf("Joueur %d : %s\n", i + 1, party.playersTab[i].name);
+    }
+    return party;
+}
+
+int InitClient(int* ptrMsgId, int* ptrShmId) {
+    int nbInitializer = 1;
+    pthread_t initializer[nbInitializer];
+
+    void* shmId;
+    void* msgId;
+    key_t key;
+
+    key = CreateKey();
+
+    pthread_create(
+        &initializer[0],
+        NULL,
+        ThreadConnectsToMsg,
+        (void*) (__intptr_t) key
+    );
+
+    pthread_create(
+        &initializer[1],
+        NULL,
+        ThreadConnectsToShm,
+        (void*) (__intptr_t) key
+    );
+
+    pthread_join(initializer[0], &msgId);
+    pthread_join(initializer[1], &shmId);
+
+    ptrMsgId = msgId;
+    ptrShmId = shmId;
+}
+
+void* ThreadConnectsToShm(void* arg) {
+
+    key_t key = (key_t) (__intptr_t) arg;
+
+    int shmId = shmget(key, SHM_SIZE, 0666 | IPC_CREAT);
+
+    if (shmId < 0) {
+        // Erreur
+        perror("[ERROR] Erreur lors de la recherche de mémoire partagée");
+        exit(EXIT_FAILURE);
+    }
+    else {
+        if (DEBUG_MODE) {
+            printf("[DEBUG] Connexion à la mémoire partagée n° %d\n", shmId);
+        }
+    }
+     printf("\n plaf:%s\n", GetForbiddenString(shmId));
+      printf("\n plouf%s\n", GetForbiddenString(shmId));
+    return (void*) (__intptr_t) shmId;
+}
+
+char* GetForbiddenString(int shmId) {
+    char* string = malloc(SHM_SIZE);
+    char* shm = shmat(shmId, NULL, 0);
+    if (!shm) {
+        perror("error");
+        exit(EXIT_FAILURE);
+    }
+    else {
+        if (DEBUG_MODE) {
+            printf("[DEBUG] Attribution de la mémoire partagée");
+        }
+    }
+
+    if(!strncpy(string, shm, SHM_SIZE)){
+        perror("erroe");
+        exit(EXIT_FAILURE);
+    }
+
+    shmdt(shm);
+
+    return string;
+}

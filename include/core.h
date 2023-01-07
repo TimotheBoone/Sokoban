@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include <sys/ipc.h>
+#include <sys/shm.h>
 #include <sys/msg.h>
 #include <errno.h>
 
@@ -29,6 +30,8 @@
 #define MAX_NUMBER_PLAYER 3
 
 #define MAX_PLAYER_NAME_LENGTH 64
+
+#define SHM_SIZE (5 + MAX_NUMBER_PLAYER)
 
 #if DEBUG
 #define DEBUG_MODE 1

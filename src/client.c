@@ -11,66 +11,56 @@
 int main(int argc, char const* argv[]) {
   // Initialization of variables
   Player me;
-  WrapParty myParty;
+  Party myParty;
   key_t key;
-  char playerNameBuffer[MAX_PLAYER_NAME_LENGTH];
-  char characterBuffer[1];
   int msgId;
-  pid_t myPid = getpid();
+  int shmId;
   int i;
-
+  char forbiddenString[SHM_SIZE];
   // Initialize player structure
   InitPlayer(&me);
 
-  // Connection to the server
-  key = CreateKey();
+  InitClient(&msgId, &shmId);
 
   // Find the message queue created by the server
-  msgId = ConnectToMsg(key);
-
+  //msgId = ThreadConnectsToMsg();
+  printf("main shm : %d\n", shmId);
+  // Retrieve the forbidden string from shared memory
+  
+  printf("Choose your character? (except %s) \n", GetForbiddenString(shmId));
   // Creation of players
-  AskPlayerInfos(&me);
+  AskPlayerInfos(&me, shmId);
 
   // Player created
   // Send my player to the server
   SendPlayerInAWrap(msgId, Wrap(me));
 
   // Summary of the players registered in the game = lobby
-
-  if (msgrcv(msgId, &myParty, sizeof(myParty), myPid, 0) == -1) {
-    perror("[ERROR][SERV] Erreur lors de la lecture du message du client");
-    exit(EXIT_FAILURE);
-  }
-  else {
-    printf("Joueurs dans la partie :\n");
-    for (i = 0; i < MAX_NUMBER_PLAYER; i++) {
-      printf("Joueur %d : %s\n", i, myParty.mtext.playersTab[i].name);
-    }
-
-    // Store player
-  }
-  /****************************************************** JEU ***************************************************************************/
-  
-  // Boite aux lettres
-  // Chacun stock le sien
-
-  // Game
-  // Show map
-  // Edit map
-  // Edit map when input
-  // Players movement
-  // Boxes
-  // # : mur
-  // @ : caisse
-  // . : destination
-  // * : caisse sur une zone de rangement (pas présente dans ce niveau)
-  // + : personnage sur une zone de rangement (pas présent dans ce niveau)
-
-  // Destination
-  // Walls
-  // Dont go forward
-  // Victory
-  // Go back
-
-  // Lock detection
+  myParty = WaitForAFullParty(msgId);
+  printf("Lancement du jeu\n");
+  // Store player
 }
+/****************************************************** JEU ***************************************************************************/
+
+// Boite aux lettres
+// Chacun stock le sien
+
+// Game
+// Show map
+// Edit map
+// Edit map when input
+// Players movement
+// Boxes
+// # : mur
+// @ : caisse
+// . : destination
+// * : caisse sur une zone de rangement (pas présente dans ce niveau)
+// + : personnage sur une zone de rangement (pas présent dans ce niveau)
+
+// Destination
+// Walls
+// Dont go forward
+// Victory
+// Go back
+
+// Lock detection
