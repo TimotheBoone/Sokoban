@@ -205,11 +205,11 @@ Party WaitForAFullParty(int msgId) {
 
 
 void PlayAGame(int msgId) {
-    Game* game;
+    Game* game = (Game*) malloc(sizeof(Game));  // Allocate memory for the struct
     pthread_t displayThread;
-    pthread_create(&displayThread, NULL, ThreadDisplaysAGame, (void*) &game);
-
     InitAGame(game);
+    //pthread_create(&displayThread, NULL, ThreadDisplaysAGame, (void*) &game);
+
     printf("C'est OK ici !\n");
     do {
         pthread_mutex_lock(&(game->gameLocker));
@@ -223,7 +223,7 @@ void PlayAGame(int msgId) {
 }
 
 void* ThreadDisplaysAGame(void* arg) {
-    WINDOW* win = NULL ;
+    WINDOW* win = NULL;
     Game* game = (Game*) arg;
     Game localGame;
     int i;//Compteur

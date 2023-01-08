@@ -237,15 +237,15 @@ bool CheckCollisionWithWalls(Game* game, Pos nextPosition) {
 }
 
 void InitAGame(Game* game) {
-    //game->isInProgress = true;
+    game->isInProgress = true;
     pthread_mutex_init(&(game->gameLocker), NULL);
-    printf("C'est OK ici !\n");
     pthread_cond_init(&(game->gameUpdate), NULL);
 
     InitGameBorders(game, GAME_WIDTH, GAME_HEIGHT);
     InitEmptyGameElements(game);
 
     InsertGameElementsFromMapFile(game, MAP_PATH);
+    printf("C'est OK à l'init !\n");
 }
 // //Fonction qui va permettre le non-dépassement des bordures du plateau pour les mouvements de la caisse
 // static int overtaking_box(Game* game, WINDOW* win) {
