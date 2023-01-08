@@ -210,7 +210,6 @@ void PlayAGame(int msgId) {
     InitAGame(game);
     //pthread_create(&displayThread, NULL, ThreadDisplaysAGame, (void*) &game);
 
-    printf("C'est OK ici !\n");
     do {
         pthread_mutex_lock(&(game->gameLocker));
         // Update the game state
