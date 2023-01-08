@@ -14,17 +14,17 @@ int main(int argc, char const* argv[]) {
   //* Initialization of variables
 
   // Datastructure used for connecting players
-  Party lobby;
+  Group lobby;
   // Key known by server and clients
   key_t key;
   // Id of msg that will transfer data server<->clients
 
   //* Initialization of mutex
-  pthread_mutex_init(&mutexParty, NULL);
+  pthread_mutex_init(&mutexGroup, NULL);
   pthread_mutex_init(&mutexGame, NULL);
   //* Connection server<->clients
   // Initialize data transfer protocols
-  //  - Msg, for Party structure
+  //  - Msg, for Group structure
   //  - Shm, for forbidden character string
   msgId = InitServer();
 
@@ -34,7 +34,7 @@ int main(int argc, char const* argv[]) {
   }
 
   // Initialize default datas for party
-  InitParty(&lobby);
+  InitGroup(&lobby);
 
   // Waiting for all players connection
   WaitingForPlayers( &lobby);

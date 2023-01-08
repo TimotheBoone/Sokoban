@@ -21,7 +21,7 @@ int main(int argc, char const* argv[]) {
 
   //* Connection client<->server
   // Initialize data transfer protocols
-  //  - Msg, for Party structure
+  //  - Msg, for Group structure
   //  - Shm, for forbidden character string
   InitClient(&msgId);
 
@@ -31,7 +31,7 @@ int main(int argc, char const* argv[]) {
   SendPlayerInAWrap(Wrap(me));
 
   // Summary of the players registered in the game
-  WaitForAFullParty();
+  WaitForAFullGroup();
 
   //* Game is ready, launch the game
   PlayAGame();

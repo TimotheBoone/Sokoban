@@ -111,8 +111,8 @@ void SendPlayerInAWrap(WrapPlayer wrap) {
     }
 }
 
-Party WaitForAParty() {
-    WrapParty party;
+Group WaitForAGroup() {
+    WrapGroup party;
     if (msgrcv(msgId, &party, sizeof(party.mtext), getpid(), 0) == -1) {
         perror("[ERROR] Erreur lors de la lecture du message du serveur");
         exit(EXIT_FAILURE);
@@ -141,11 +141,11 @@ Game* WaitForAGame() {
     return game;
 }
 
-Party WaitForAFullParty() {
+Group WaitForAFullGroup() {
     int i;
-    Party party;
+    Group party;
     do {
-        party = WaitForAParty(msgId);
+        party = WaitForAGroup(msgId);
         if (party.numberPlayers < MAX_NUMBER_PLAYER) {
             printf("Waiting for other players (%d/%d)...\n", party.numberPlayers, MAX_NUMBER_PLAYER);
         }
@@ -173,7 +173,7 @@ void PlayAGame() {
 
     do {
         pthread_mutex_lock(&gameLocker);
-        
+
         game = WaitForAGame();
 
         pthread_cond_signal(&gameUpdate);

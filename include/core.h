@@ -54,12 +54,12 @@ typedef struct {
 typedef struct {
   unsigned int numberPlayers;
   Player playersTab[MAX_NUMBER_PLAYER];
-} Party;
+} Group;
 
 typedef struct {
   long mtype;
-  Party mtext;
-} WrapParty;
+  Group mtext;
+} WrapGroup;
 
 typedef struct {
   long mtype;

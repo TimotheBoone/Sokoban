@@ -13,33 +13,33 @@
 
 typedef struct {
     pid_t receiver;
-    Party party;
-}SenderArgsParty;
+    Group party;
+}SenderArgsGroup;
 
 typedef struct {
     pid_t receiver;
     Game game;
 }SenderArgsGame;
 
-pthread_mutex_t mutexParty;
+pthread_mutex_t mutexGroup;
 pthread_mutex_t mutexGame;
 
 
-void SendPartyInAWrap(WrapParty wrap);
+void SendGroupInAWrap(WrapGroup wrap);
 void* ThreadCreatesMsg(void* arg);
-void InitParty(Party* party);
+void InitGroup(Group* party);
 Player WaitForAPlayer();
-void InsertPlayerInParty(Party* party, Player player);
-void WaitingForPlayers( Party* party);
-void* ThreadSendsParty(void* args);
-SenderArgsParty SendersArgsPartyConstructor( pid_t pid, Party party);
-WrapParty WrapPartyConstructor(Party party, pid_t receiver);
-void SendCurrentPartyToCurrentsPlayers(Party party);
+void InsertPlayerInGroup(Group* party, Player player);
+void WaitingForPlayers( Group* party);
+void* ThreadSendsGroup(void* args);
+SenderArgsGroup SendersArgsGroupConstructor( pid_t pid, Group party);
+WrapGroup WrapGroupConstructor(Group party, pid_t receiver);
+void SendCurrentGroupToCurrentsPlayers(Group party);
 int InitServer();
 void PlayAGame();
 SenderArgsGame SendersArgsGameConstructor(pid_t pid, Game game);
 void SendGameInAWrap(WrapGame wrap);
 WrapGame WrapGameConstructor(Game game, pid_t receiver) ;
 void* ThreadSendsGame(void* args);
-void SendCurrentGameToCurrentsPlayers(Game game, Party party);
+void SendCurrentGameToCurrentsPlayers(Game game, Group party);
 

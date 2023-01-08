@@ -17,7 +17,7 @@ void* ThreadCreatesMsg(void* arg) {
     return (void*) (__intptr_t) msgId;
 }
 
-void InitParty(Party* party) {
+void InitGroup(Group* party) {
     (*party).numberPlayers = 0;
 }
 
@@ -32,7 +32,7 @@ Player WaitForAPlayer(int msgId) {
     return player.mtext;
 }
 
-void WaitingForPlayers(Party* party) {
+void WaitingForPlayers(Group* party) {
     Player playerBuffer;
 
     while ((*party).numberPlayers < MAX_NUMBER_PLAYER) {
@@ -44,25 +44,25 @@ void WaitingForPlayers(Party* party) {
         printf("Player : %s\n", playerBuffer.name);
 
         // Store player received in the party
-        InsertPlayerInParty(&(*party), playerBuffer);
+        InsertPlayerInGroup(&(*party), playerBuffer);
 
         // Send the current party to all currents players
-        SendCurrentPartyToCurrentsPlayers(*party);
+        SendCurrentGroupToCurrentsPlayers(*party);
 
     }
 }
 
-void SendCurrentPartyToCurrentsPlayers(Party party) {
+void SendCurrentGroupToCurrentsPlayers(Group party) {
     pthread_t senders[MAX_NUMBER_PLAYER];
     for (int threadNumber = 0; threadNumber < party.numberPlayers; threadNumber++) {
-        SenderArgsParty args;
+        SenderArgsGroup args;
         // Lock args variable modification
-        pthread_mutex_lock(&mutexParty);
-        args = SendersArgsPartyConstructor(party.playersTab[threadNumber].pid, party);
+        pthread_mutex_lock(&mutexGroup);
+        args = SendersArgsGroupConstructor(party.playersTab[threadNumber].pid, party);
         pthread_create(
             &senders[threadNumber],
             NULL,
-            ThreadSendsParty,
+            ThreadSendsGroup,
             &args
         );
     }
@@ -72,13 +72,13 @@ void SendCurrentPartyToCurrentsPlayers(Party party) {
     }
 }
 
-void InsertPlayerInParty(Party* party, Player player) {
+void InsertPlayerInGroup(Group* party, Player player) {
     (*party).playersTab[(*party).numberPlayers] = player;
     (*party).numberPlayers++;
 }
 
-WrapParty WrapPartyConstructor(Party party, pid_t receiver) {
-    WrapParty partyInAWrap;
+WrapGroup WrapGroupConstructor(Group party, pid_t receiver) {
+    WrapGroup partyInAWrap;
 
     partyInAWrap.mtext = party;
     partyInAWrap.mtype = (long) receiver;
@@ -86,7 +86,7 @@ WrapParty WrapPartyConstructor(Party party, pid_t receiver) {
     return partyInAWrap;
 }
 
-void SendPartyInAWrap(WrapParty wrap) {
+void SendGroupInAWrap(WrapGroup wrap) {
     if (msgsnd(msgId, &wrap, sizeof(wrap.mtext), 0) == -1) {
         perror("[ERROR] Erreur lors de l'écriture du message");
         exit(EXIT_FAILURE);
@@ -99,25 +99,25 @@ void SendPartyInAWrap(WrapParty wrap) {
     }
 }
 
-SenderArgsParty SendersArgsPartyConstructor(pid_t pid, Party party) {
-    SenderArgsParty args;
+SenderArgsGroup SendersArgsGroupConstructor(pid_t pid, Group party) {
+    SenderArgsGroup args;
     args.receiver = pid;
     args.party = party;
     return args;
 }
 
 
-void* ThreadSendsParty(void* args) {
+void* ThreadSendsGroup(void* args) {
     // Get given argument
-    SenderArgsParty* data = (SenderArgsParty*) args;
+    SenderArgsGroup* data = (SenderArgsGroup*) args;
 
     // Transform data in usable variable
     pid_t receiver = (*data).receiver;
-    Party party = (*data).party;
-    pthread_mutex_unlock(&mutexParty);
+    Group party = (*data).party;
+    pthread_mutex_unlock(&mutexGroup);
     //! Don't use args variable here
 
-    SendPartyInAWrap(WrapPartyConstructor(party, receiver));
+    SendGroupInAWrap(WrapGroupConstructor(party, receiver));
     // Faire quelque chose dans le thread...
     //printf("Je suis le thread numéro %d !\n", threadNumber);
 
@@ -149,7 +149,7 @@ int InitServer() {
     return (int) (__intptr_t) msgId;
 }
 
-void PlayAGame(Party party) {
+void PlayAGame(Group party) {
     Game game;
     pthread_t senders[MAX_NUMBER_PLAYER];
     InitAGame(&game);
@@ -159,7 +159,7 @@ void PlayAGame(Party party) {
 
 }
 
-void SendCurrentGameToCurrentsPlayers(Game game, Party party) {
+void SendCurrentGameToCurrentsPlayers(Game game, Group party) {
     pthread_t senders[MAX_NUMBER_PLAYER];
 
     for (int threadNumber = 0; threadNumber < party.numberPlayers; threadNumber++) {
@@ -199,7 +199,7 @@ void* ThreadSendsGame(void* args) {
 WrapGame WrapGameConstructor(Game game, pid_t receiver) {
     WrapGame gameInAWrap;
 
-    gameInAWrap.mtext = game;
+    gameInAWrap.mtext = (Game) game;
     gameInAWrap.mtype = (long) receiver;
 
     return gameInAWrap;
