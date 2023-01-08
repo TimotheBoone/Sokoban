@@ -9,6 +9,7 @@
 #include "../include/server.h"
 
 
+
 int main(int argc, char const* argv[]) {
   //* Initialization of variables
 
@@ -17,8 +18,6 @@ int main(int argc, char const* argv[]) {
   // Key known by server and clients
   key_t key;
   // Id of msg that will transfer data server<->clients
-  int msgId;
-  int shmId;
 
   //* Initialization of mutex
   pthread_mutex_init(&mutex, NULL);
@@ -31,17 +30,17 @@ int main(int argc, char const* argv[]) {
 
   // Check infos about created msg
   if (DEBUG_MODE) {
-    PrintMsgInfo(msgId);
+    PrintMsgInfo();
   }
 
   // Initialize default datas for party
   InitParty(&lobby);
 
   // Waiting for all players connection
-  WaitingForPlayers(msgId, &lobby);
+  WaitingForPlayers( &lobby);
 
   //* Launch the game
-  printf("Game launched\n");
+  //PlayAGame(msgId);
 
 }
 

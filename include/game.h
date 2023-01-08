@@ -91,5 +91,5 @@ void InitAGame(Game* game);
 void ResetAllDirections(Game* game);
 void UserInput(Game* game, int userId);
 void MoveCharacter(Game* game, int userId);
-void affichage(Game* game, WINDOW* win);
+void Display(Game* game, WINDOW* win);
 void Execute(Game* game, WINDOW* win);

@@ -20,15 +20,16 @@ typedef struct {
 pthread_mutex_t mutex;
 
 
-void SendPartyInAWrap(int msgId, WrapParty wrap);
+void SendPartyInAWrap(WrapParty wrap);
 void* ThreadCreatesMsg(void* arg);
 void InitParty(Party* party);
-Player WaitForAPlayer(int msgId);
+Player WaitForAPlayer();
 void InsertPlayerInParty(Party* party, Player player);
-void WaitingForPlayers(int msgId, Party* party);
+void WaitingForPlayers( Party* party);
 void* ThreadSendsParty(void* args);
-SenderArgs SendersArgsConstructor(int msgid, pid_t pid, Party party);
+SenderArgs SendersArgsConstructor( pid_t pid, Party party);
 WrapParty Wrap(Party party, pid_t receiver);
-void SendCurrentPartyToCurrentsPlayers(int msgId, Party party);
+void SendCurrentPartyToCurrentsPlayers(Party party);
 int InitServer();
 void* ThreadCreatesShm(void* arg);
+void PlayAGame();

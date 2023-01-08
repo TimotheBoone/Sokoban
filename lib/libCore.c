@@ -53,7 +53,7 @@ void CheckKeyFileExistence() {
 }
 
 // Affiche les informations de la boite aux lettres
-void PrintMsgInfo(int msgId) {
+void PrintMsgInfo() {
     // Déclaration des variables
     struct msqid_ds buf;
 

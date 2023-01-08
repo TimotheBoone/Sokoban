@@ -82,7 +82,7 @@ void* ThreadConnectsToShm(void* arg) {
 
 
 
-void AskPlayerInfos(Player* player, int shmId) {
+void AskPlayerInfos(Player* player) {
     char playerNameBuffer[MAX_PLAYER_NAME_LENGTH];
     char playerCharacterBuffer[1];
     //char *forbiddenString;
@@ -165,7 +165,7 @@ void SendPlayerInAWrap(int msgId, WrapPlayer wrap) {
     }
 }
 
-Party WaitForAParty(int msgId) {
+Party WaitForAParty() {
     WrapParty party;
 
     if (msgrcv(msgId, &party, sizeof(party.mtext), getpid(), 0) == -1) {
@@ -176,7 +176,7 @@ Party WaitForAParty(int msgId) {
     return party.mtext;
 }
 
-Game WaitForAGame(int msgId) {
+Game WaitForAGame() {
     WrapGame game;
 
     if (msgrcv(msgId, &game, sizeof(game.mtext), getpid(), 0) == -1) {
@@ -187,7 +187,7 @@ Game WaitForAGame(int msgId) {
     return game.mtext;
 }
 
-Party WaitForAFullParty(int msgId) {
+Party WaitForAFullParty() {
     int i;
     Party party;
     do {
@@ -204,11 +204,12 @@ Party WaitForAFullParty(int msgId) {
 }
 
 
-void PlayAGame(int msgId) {
+void PlayAGame() {
     Game* game = (Game*) malloc(sizeof(Game));  // Allocate memory for the struct
-    pthread_t displayThread;
+    pthread_t displayThread, inputThread;
     InitAGame(game);
-    //pthread_create(&displayThread, NULL, ThreadDisplaysAGame, (void*) &game);
+    pthread_create(&displayThread, NULL, ThreadDisplaysAGame, (void*) &game);
+    pthread_create(&displayThread, NULL, ThreadDisplaysAGame, (void*) &game);
 
     do {
         pthread_mutex_lock(&(game->gameLocker));
@@ -239,33 +240,36 @@ void* ThreadDisplaysAGame(void* arg) {
 
         localGame = *game;
         pthread_mutex_unlock(&(game->gameLocker));
-        //Avant chaque affichage, on refresh pour mettre à jour le plateau et prendre en compte les mouvements définis par la fonction move_charac()
-        werase(win);
-        box(win, 0, 0);
+        //! Don't use game here
+        Display(&localGame, win);
+        UserInput(&localGame, 0);
 
-        //On fait appel à la fonction qui s'occupe de l'affichage des murs du plateau 
-
-        //Affichage d'une caisse
-        for (i = 0; i < localGame.boxs.numberElt;i++) {
-            mvwprintw(win, (localGame.boxs.arrayElt[i].pos.y) + 1, (localGame.boxs.arrayElt[i].pos.x) + 1, "+");
-        }
-
-        //Affichage d'un receptacle
-        for (i = 0; i < localGame.containers.numberElt;i++) {
-            mvwprintw(win, (localGame.containers.arrayElt[i].y) + 1, (localGame.containers.arrayElt[i].x) + 1, ".");
-        }
-        //Affichage d'un mur 
-        for (i = 0; i < localGame.walls.numberElt;i++) {
-            mvwprintw(win, (localGame.walls.arrayElt[i].y) + 1, (localGame.walls.arrayElt[i].x) + 1, "#");
-        }
-        //Affichage d'un personnage
-        for (i = 0; i < localGame.characters.numberElt;i++) {
-            mvwprintw(win, (localGame.characters.arrayElt[i].pos.y) + 1, (localGame.characters.arrayElt[i].pos.x) + 1, "@");
-        }
-
-        //Toujours refresh l'écran pour permettre l'affichage lorsqu'on utlise la biliothèque ncurses 
-        wrefresh(win);
+        SendGame(msgId, localGame);
     }
 
     return NULL;
+}
+
+void* ThreadSendInput(void* arg){
+    while()
+}
+
+
+void SendGame(Game game) {
+
+    WrapGame wrap;
+
+    wrap.mtext = game;
+    wrap.mtype = 1;
+
+    if (msgsnd(msgId, &wrap, sizeof(wrap.mtext), 0) == -1) {
+        perror("[ERROR] Erreur lors de l'écriture du message");
+        exit(EXIT_FAILURE);
+    }
+    else {
+        if (DEBUG_MODE) {
+            printf("[DEBUG] Ecriture de la partie dans la boite aux lettres n° %d\n",
+                   msgId);
+        }
+    }
 }

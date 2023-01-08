@@ -68,5 +68,7 @@ typedef struct {
 } WrapGame;
 
 key_t CreateKey();
-void PrintMsgInfo(int msgId);
-void CheckKeyFileExistence() ;
+void PrintMsgInfo();
+void CheckKeyFileExistence();
+
+int msgId;

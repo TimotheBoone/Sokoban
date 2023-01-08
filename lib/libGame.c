@@ -417,7 +417,7 @@ void MoveCharacter(Game* game, int userId) {
 
 
 //Fonction affichage qui va afficher les éléments sur le plateau (personnage, murs, réceptacles, caisses)
-void affichage(Game* game, WINDOW* win) {
+void Display(Game* game, WINDOW* win) {
 
     //Avant chaque affichage, on refresh pour mettre à jour le plateau et prendre en compte les mouvements définis par la fonction move_charac()
     werase(win);
@@ -453,7 +453,7 @@ void affichage(Game* game, WINDOW* win) {
 void Execute(Game* game, WINDOW* win) {
     do { //faire
 
-        affichage(game, win);
+        Display(game, win);
         //On fait appel à la fonction qui va récupérer la direction que l'utilisateur tape en fonction des touches q, z, s et d.
 
         UserInput(game, 0);
@@ -465,7 +465,7 @@ void Execute(Game* game, WINDOW* win) {
         //move_box(game, win);
 
         //On affiche le personnage, la caisse, le mur, le réceptacle
-        affichage(game, win);
+        Display(game, win);
 
         //On fait appel à la fonction qui va permettre au personnage de ne pas passer au dessus de la caisse si elle est contre un mur 
         //charac_recovery(game, win);

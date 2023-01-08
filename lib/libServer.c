@@ -32,7 +32,7 @@ Player WaitForAPlayer(int msgId) {
     return player.mtext;
 }
 
-void WaitingForPlayers(int msgId, Party* party) {
+void WaitingForPlayers(Party* party) {
     Player playerBuffer;
 
     while ((*party).numberPlayers < MAX_NUMBER_PLAYER) {
@@ -52,7 +52,7 @@ void WaitingForPlayers(int msgId, Party* party) {
     }
 }
 
-void SendCurrentPartyToCurrentsPlayers(int msgId, Party party) {
+void SendCurrentPartyToCurrentsPlayers(Party party) {
     pthread_t senders[MAX_NUMBER_PLAYER];
     for (int threadNumber = 0; threadNumber < party.numberPlayers; threadNumber++) {
         SenderArgs args;
@@ -86,7 +86,7 @@ WrapParty Wrap(Party party, pid_t receiver) {
     return partyInAWrap;
 }
 
-void SendPartyInAWrap(int msgId, WrapParty wrap) {
+void SendPartyInAWrap( WrapParty wrap) {
     if (msgsnd(msgId, &wrap, sizeof(wrap.mtext), 0) == -1) {
         perror("[ERROR] Erreur lors de l'écriture du message");
         exit(EXIT_FAILURE);
@@ -99,7 +99,7 @@ void SendPartyInAWrap(int msgId, WrapParty wrap) {
     }
 }
 
-SenderArgs SendersArgsConstructor(int msgid, pid_t pid, Party party) {
+SenderArgs SendersArgsConstructor(pid_t pid, Party party) {
     SenderArgs args;
     args.msgId = msgid;
     args.receiver = pid;
@@ -135,8 +135,6 @@ int InitServer() {
     key_t key;
 
     key = CreateKey();
-
-
 
     pthread_create(
         &initializer[0],
