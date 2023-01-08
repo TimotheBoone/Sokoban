@@ -12,12 +12,17 @@
 
 
 typedef struct {
-    int msgId;
     pid_t receiver;
     Party party;
-}SenderArgs;
+}SenderArgsParty;
 
-pthread_mutex_t mutex;
+typedef struct {
+    pid_t receiver;
+    Game game;
+}SenderArgsGame;
+
+pthread_mutex_t mutexParty;
+pthread_mutex_t mutexGame;
 
 
 void SendPartyInAWrap(WrapParty wrap);
@@ -27,9 +32,14 @@ Player WaitForAPlayer();
 void InsertPlayerInParty(Party* party, Player player);
 void WaitingForPlayers( Party* party);
 void* ThreadSendsParty(void* args);
-SenderArgs SendersArgsConstructor( pid_t pid, Party party);
-WrapParty Wrap(Party party, pid_t receiver);
+SenderArgsParty SendersArgsPartyConstructor( pid_t pid, Party party);
+WrapParty WrapPartyConstructor(Party party, pid_t receiver);
 void SendCurrentPartyToCurrentsPlayers(Party party);
 int InitServer();
-void* ThreadCreatesShm(void* arg);
 void PlayAGame();
+SenderArgsGame SendersArgsGameConstructor(pid_t pid, Game game);
+void SendGameInAWrap(WrapGame wrap);
+WrapGame WrapGameConstructor(Game game, pid_t receiver) ;
+void* ThreadSendsGame(void* args);
+void SendCurrentGameToCurrentsPlayers(Game game, Party party);
+

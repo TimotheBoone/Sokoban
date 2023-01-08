@@ -23,17 +23,17 @@ int main(int argc, char const* argv[]) {
   // Initialize data transfer protocols
   //  - Msg, for Party structure
   //  - Shm, for forbidden character string
-  InitClient(&msgId, &shmId);
+  InitClient(&msgId);
 
   // Player structure filled by the user
-  AskPlayerInfos(&me, shmId);
+  AskPlayerInfos(&me);
   // Send my player to the server
-  SendPlayerInAWrap(msgId, Wrap(me));
+  SendPlayerInAWrap(Wrap(me));
 
   // Summary of the players registered in the game
-  WaitForAFullParty(msgId);
+  WaitForAFullParty();
 
   //* Game is ready, launch the game
-  PlayAGame(msgId);
+  PlayAGame();
 
 }

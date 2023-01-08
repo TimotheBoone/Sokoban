@@ -23,3 +23,4 @@ void* ThreadReceivesGameUpdates();
 void PlayAGame();
 void* ThreadDisplaysAGame(void* arg) ;
 void SendGame(Game game);
+void* ThreadSendsInput(void* arg);

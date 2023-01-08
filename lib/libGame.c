@@ -237,9 +237,7 @@ bool CheckCollisionWithWalls(Game* game, Pos nextPosition) {
 }
 
 void InitAGame(Game* game) {
-    game->isInProgress = true;
-    pthread_mutex_init(&(game->gameLocker), NULL);
-    pthread_cond_init(&(game->gameUpdate), NULL);
+    game->isInProgress=true;
 
     InitGameBorders(game, GAME_WIDTH, GAME_HEIGHT);
     InitEmptyGameElements(game);

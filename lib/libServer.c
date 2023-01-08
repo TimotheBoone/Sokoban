@@ -47,7 +47,7 @@ void WaitingForPlayers(Party* party) {
         InsertPlayerInParty(&(*party), playerBuffer);
 
         // Send the current party to all currents players
-        SendCurrentPartyToCurrentsPlayers(msgId, *party);
+        SendCurrentPartyToCurrentsPlayers(*party);
 
     }
 }
@@ -55,10 +55,10 @@ void WaitingForPlayers(Party* party) {
 void SendCurrentPartyToCurrentsPlayers(Party party) {
     pthread_t senders[MAX_NUMBER_PLAYER];
     for (int threadNumber = 0; threadNumber < party.numberPlayers; threadNumber++) {
-        SenderArgs args;
+        SenderArgsParty args;
         // Lock args variable modification
-        pthread_mutex_lock(&mutex);
-        args = SendersArgsConstructor(msgId, party.playersTab[threadNumber].pid, party);
+        pthread_mutex_lock(&mutexParty);
+        args = SendersArgsPartyConstructor(party.playersTab[threadNumber].pid, party);
         pthread_create(
             &senders[threadNumber],
             NULL,
@@ -77,16 +77,16 @@ void InsertPlayerInParty(Party* party, Player player) {
     (*party).numberPlayers++;
 }
 
-WrapParty Wrap(Party party, pid_t receiver) {
+WrapParty WrapPartyConstructor(Party party, pid_t receiver) {
     WrapParty partyInAWrap;
 
     partyInAWrap.mtext = party;
-    partyInAWrap.mtype = receiver;
+    partyInAWrap.mtype = (long) receiver;
 
     return partyInAWrap;
 }
 
-void SendPartyInAWrap( WrapParty wrap) {
+void SendPartyInAWrap(WrapParty wrap) {
     if (msgsnd(msgId, &wrap, sizeof(wrap.mtext), 0) == -1) {
         perror("[ERROR] Erreur lors de l'écriture du message");
         exit(EXIT_FAILURE);
@@ -99,26 +99,25 @@ void SendPartyInAWrap( WrapParty wrap) {
     }
 }
 
-SenderArgs SendersArgsConstructor(pid_t pid, Party party) {
-    SenderArgs args;
-    args.msgId = msgid;
+SenderArgsParty SendersArgsPartyConstructor(pid_t pid, Party party) {
+    SenderArgsParty args;
     args.receiver = pid;
     args.party = party;
     return args;
 }
 
+
 void* ThreadSendsParty(void* args) {
     // Get given argument
-    SenderArgs* data = (SenderArgs*) args;
+    SenderArgsParty* data = (SenderArgsParty*) args;
 
     // Transform data in usable variable
-    int msgId = (*data).msgId;
     pid_t receiver = (*data).receiver;
     Party party = (*data).party;
-    pthread_mutex_unlock(&mutex);
+    pthread_mutex_unlock(&mutexParty);
     //! Don't use args variable here
 
-    SendPartyInAWrap(msgId, Wrap(party, receiver));
+    SendPartyInAWrap(WrapPartyConstructor(party, receiver));
     // Faire quelque chose dans le thread...
     //printf("Je suis le thread numéro %d !\n", threadNumber);
 
@@ -126,7 +125,7 @@ void* ThreadSendsParty(void* args) {
 }
 
 int InitServer() {
-    int nbInitializer = 2;
+    int nbInitializer = 1;
     pthread_t initializer[nbInitializer];
     int i;
 
@@ -143,33 +142,86 @@ int InitServer() {
         (void*) (__intptr_t) key
     );
 
-    pthread_create(
-        &initializer[1],
-        NULL,
-        ThreadCreatesShm,
-        (void*) (__intptr_t) key
-    );
 
     for (i = 0; i < nbInitializer; i++) {
         pthread_join(initializer[i], &msgId);
     }
     return (int) (__intptr_t) msgId;
+}
+
+void PlayAGame(Party party) {
+    Game game;
+    pthread_t senders[MAX_NUMBER_PLAYER];
+    InitAGame(&game);
+    do {
+        SendCurrentGameToCurrentsPlayers(game, party);
+    } while (game.isInProgress);
 
 }
 
-void* ThreadCreatesShm(void* arg) {
-    int shmId;
-    void* shm;
+void SendCurrentGameToCurrentsPlayers(Game game, Party party) {
+    pthread_t senders[MAX_NUMBER_PLAYER];
 
-    key_t key = (key_t) (__intptr_t) arg;
+    for (int threadNumber = 0; threadNumber < party.numberPlayers; threadNumber++) {
+        SenderArgsGame args;
+        pthread_mutex_lock(&mutexGame);
+        args = SendersArgsGameConstructor(party.playersTab[threadNumber].pid, game);
+        pthread_create(
+            &senders[threadNumber],
+            NULL,
+            ThreadSendsGame,
+            &args
+        );
+    }
 
-    // Création du segment de mémoire partagée
-    shmId = shmget(key, SHM_SIZE, 0644 | IPC_CREAT);
+    for (int threadNumber = 0; threadNumber < party.numberPlayers; threadNumber++) {
+        pthread_join(senders[threadNumber], NULL);
+    }
+}
 
-    // Attachement du segment de mémoire partagée
-    shm = shmat(shmId, NULL, 0);
+void* ThreadSendsGame(void* args) {
+    // Get given argument
+    SenderArgsGame* data = (SenderArgsGame*) args;
 
-    strcpy(shm, FORBIDDEN_CHAR);
+    // Transform data in usable variable
+    pid_t receiver = (*data).receiver;
+    Game game = (*data).game;
+    pthread_mutex_unlock(&mutexGame);
+    //! Don't use args variable here
 
-    shmdt(shm);
+    SendGameInAWrap(WrapGameConstructor(game, receiver));
+    // Faire quelque chose dans le thread...
+    //printf("Je suis le thread numéro %d !\n", threadNumber);
+
+    return NULL;
+}
+
+WrapGame WrapGameConstructor(Game game, pid_t receiver) {
+    WrapGame gameInAWrap;
+
+    gameInAWrap.mtext = game;
+    gameInAWrap.mtype = (long) receiver;
+
+    return gameInAWrap;
+}
+
+void SendGameInAWrap(WrapGame wrap) {
+
+    if (msgsnd(msgId, &wrap, sizeof(wrap.mtext),0) == -1) {
+        perror("[ERROR] Erreur lors de l'écriture du message");
+        exit(EXIT_FAILURE);
+    }
+    else {
+        if (DEBUG_MODE) {
+            printf("[DEBUG] Ecriture de la partie dans la boite aux lettres n° %d\n",
+                   msgId);
+        }
+    }
+}
+
+SenderArgsGame SendersArgsGameConstructor(pid_t pid, Game game) {
+    SenderArgsGame args;
+    args.receiver = pid;
+    args.game = game;
+    return args;
 }

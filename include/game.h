@@ -70,8 +70,6 @@ typedef struct {
   Elements walls;
   Elements containers;
 
-  pthread_mutex_t gameLocker;
-  pthread_cond_t gameUpdate;
 } Game;
 
 void InitGameBorders(Game* game, int width, int height);

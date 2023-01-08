@@ -9,7 +9,7 @@
  */
 # include "../include/client.h"
 
-int InitClient(int* ptrMsgId, int* ptrShmId) {
+int InitClient(int* ptrMsgId) {
     int nbInitializer = 1;
     pthread_t initializer[nbInitializer];
 
@@ -26,18 +26,9 @@ int InitClient(int* ptrMsgId, int* ptrShmId) {
         (void*) (__intptr_t) key
     );
 
-    pthread_create(
-        &initializer[1],
-        NULL,
-        ThreadConnectsToShm,
-        (void*) (__intptr_t) key
-    );
-
     pthread_join(initializer[0], &msgId);
-    pthread_join(initializer[1], &shmId);
 
     *ptrMsgId = (int) (__intptr_t) msgId;
-    *ptrShmId = (int) (__intptr_t) shmId;
 }
 
 void* ThreadConnectsToMsg(void* arg) {
@@ -58,30 +49,6 @@ void* ThreadConnectsToMsg(void* arg) {
     return (void*) (__intptr_t) msgId;
 }
 
-
-
-void* ThreadConnectsToShm(void* arg) {
-
-    key_t key = (key_t) (__intptr_t) arg;
-
-    int shmId = shmget(key, SHM_SIZE, 0666 | IPC_CREAT);
-
-    if (shmId < 0) {
-        // Erreur
-        perror("[ERROR] Erreur lors de la recherche de mémoire partagée");
-        exit(EXIT_FAILURE);
-    }
-    else {
-        if (DEBUG_MODE) {
-            printf("[DEBUG] Connexion à la mémoire partagée n° %d\n", shmId);
-        }
-    }
-
-    return (void*) (__intptr_t) shmId;
-}
-
-
-
 void AskPlayerInfos(Player* player) {
     char playerNameBuffer[MAX_PLAYER_NAME_LENGTH];
     char playerCharacterBuffer[1];
@@ -95,38 +62,24 @@ void AskPlayerInfos(Player* player) {
         // Get user input
         fgets(playerNameBuffer, MAX_PLAYER_NAME_LENGTH, stdin);
 
-        // Check if the string is ended or too long
-        if (playerNameBuffer[strlen(playerNameBuffer) - 1] != '\n') {
-            // String is too long
-            ErrorInputStringTooLong();
-            // Reset Buffer
-            strcpy(playerNameBuffer, "");
-        }
-        else {
+        // Check if the string is ended or too l
             // String length is correct
 
             // Remove ending newline
-            playerNameBuffer[strlen(playerNameBuffer) - 1] = '\0';
+        playerNameBuffer[strlen(playerNameBuffer) - 1] = '\0';
 
-            // Set the name of the player at the buffer value
-            strcpy((*player).name, playerNameBuffer);
-            printf("My name is %s\n", (*player).name);
-        }
+        // Set the name of the player at the buffer value
+        strcpy((*player).name, playerNameBuffer);
+        printf("My name is %s\n", (*player).name);
+    }
 
-    } while (strlen((*player).name) <= 0);
-    printf("main shm : %d\n", shmId);
+    while (strlen((*player).name) <= 0);
 
     fgets(playerCharacterBuffer, 2, stdin);
 
     // We research char in this string
     // If it's not in it, we put it into the struct
-    if (strchr(FORBIDDEN_CHAR, playerCharacterBuffer[0]) == NULL) {
-        (*player).character = playerCharacterBuffer[0];
-    }
-    else {
-        printf(
-            "[ERROR] You're not allowed to use this character ! Please choose another one.\n");
-    }
+
 
     //} while (strlen((*player).character) <= 0);
 }
@@ -134,13 +87,6 @@ void AskPlayerInfos(Player* player) {
 void InitPlayer(Player* player) {
     strcpy((*player).name, "");
     (*player).pid = getpid();
-}
-
-void ErrorInputStringTooLong() {
-    // Notifying the user
-    fprintf(stderr, "[ERROR]: The input was too long, please try again.\n");
-    // Clear the input buffer
-    fflush(stdin);
 }
 
 WrapPlayer Wrap(Player player) {
@@ -152,7 +98,7 @@ WrapPlayer Wrap(Player player) {
     return playerInAWrap;
 }
 
-void SendPlayerInAWrap(int msgId, WrapPlayer wrap) {
+void SendPlayerInAWrap(WrapPlayer wrap) {
     if (msgsnd(msgId, &wrap, sizeof(wrap.mtext), 0) == -1) {
         perror("[ERROR] Erreur lors de l'écriture du message");
         exit(EXIT_FAILURE);
@@ -167,7 +113,6 @@ void SendPlayerInAWrap(int msgId, WrapPlayer wrap) {
 
 Party WaitForAParty() {
     WrapParty party;
-
     if (msgrcv(msgId, &party, sizeof(party.mtext), getpid(), 0) == -1) {
         perror("[ERROR] Erreur lors de la lecture du message du serveur");
         exit(EXIT_FAILURE);
@@ -176,15 +121,24 @@ Party WaitForAParty() {
     return party.mtext;
 }
 
-Game WaitForAGame() {
-    WrapGame game;
+Game* WaitForAGame() {
+    WrapGame wrapGame;
+    Game* game;
+    game = (Game*) malloc(sizeof(Game*));
 
-    if (msgrcv(msgId, &game, sizeof(game.mtext), getpid(), 0) == -1) {
+    if (game == NULL) {
+        perror("Erreur malloc");
+        exit(EXIT_FAILURE);
+    }
+
+    if (msgrcv(msgId, &wrapGame, sizeof(wrapGame.mtext), getpid(), 0) == -1) {
         perror("[ERROR] Erreur lors de la lecture du message du serveur");
         exit(EXIT_FAILURE);
     }
 
-    return game.mtext;
+    *game = wrapGame.mtext;
+
+    return game;
 }
 
 Party WaitForAFullParty() {
@@ -203,23 +157,31 @@ Party WaitForAFullParty() {
     return party;
 }
 
-
 void PlayAGame() {
-    Game* game = (Game*) malloc(sizeof(Game));  // Allocate memory for the struct
+    Game* game;
     pthread_t displayThread, inputThread;
-    InitAGame(game);
+
+
+    pthread_mutex_init(&gameLocker, NULL);
+    pthread_cond_init(&gameUpdate, NULL);
+
+    printf("Waiting for the game launching...\n");
+    game = WaitForAGame();
+
     pthread_create(&displayThread, NULL, ThreadDisplaysAGame, (void*) &game);
-    pthread_create(&displayThread, NULL, ThreadDisplaysAGame, (void*) &game);
+    pthread_create(&inputThread, NULL, ThreadSendsInput, (void*) &game);
 
     do {
-        pthread_mutex_lock(&(game->gameLocker));
-        // Update the game state
-        *game = WaitForAGame(msgId);
+        pthread_mutex_lock(&gameLocker);
+        
+        game = WaitForAGame();
 
-        pthread_cond_signal(&(game->gameUpdate));
-    } while (1);
+        pthread_cond_signal(&gameUpdate);
+    } while (game->isInProgress);
 
     pthread_join(displayThread, NULL);
+
+    free(game);
 }
 
 void* ThreadDisplaysAGame(void* arg) {
@@ -236,29 +198,31 @@ void* ThreadDisplaysAGame(void* arg) {
     keypad(win, true);
     nodelay(win, true);
     while (game->isInProgress) {
-        pthread_cond_wait(&(game->gameUpdate), &(game->gameLocker));
+        pthread_cond_wait(&gameUpdate, &gameLocker);
 
         localGame = *game;
-        pthread_mutex_unlock(&(game->gameLocker));
+        pthread_mutex_unlock(&gameLocker);
         //! Don't use game here
         Display(&localGame, win);
-        UserInput(&localGame, 0);
 
-        SendGame(msgId, localGame);
     }
 
     return NULL;
 }
 
-void* ThreadSendInput(void* arg){
-    while()
+void* ThreadSendsInput(void* arg) {
+    Game* game = (Game*) arg;
+    while (game->isInProgress) {
+        UserInput(game, 0);
+
+        SendGame(*game);
+    }
 }
 
 
 void SendGame(Game game) {
 
     WrapGame wrap;
-
     wrap.mtext = game;
     wrap.mtype = 1;
 

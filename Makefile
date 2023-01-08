@@ -15,10 +15,10 @@ client : src/client.c
 	$(c) $< lib/libClient.c lib/libCore.c lib/libGame.c -o $(client_path) -lncurses -lpthread
 
 server_debug : src/server.c
-	$(c) $(d) $< lib/libServer.c lib/libCore.c lib/libGame.c -o $(server_path) -lncurses -lpthread
+	$(c) $(d) $< lib/libServer.c lib/libCore.c lib/libGame.c -o $(server_path) -lncurses -lpthread -g
 
 client_debug : src/client.c
-	$(c) $(d) $< lib/libClient.c lib/libCore.c lib/libGame.c -o $(client_path) -lncurses -lpthread
+	$(c) $(d) $< lib/libClient.c lib/libCore.c lib/libGame.c -o $(client_path) -lncurses -lpthread -g
 
 
 clean : 

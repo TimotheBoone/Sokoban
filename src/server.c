@@ -20,8 +20,8 @@ int main(int argc, char const* argv[]) {
   // Id of msg that will transfer data server<->clients
 
   //* Initialization of mutex
-  pthread_mutex_init(&mutex, NULL);
-
+  pthread_mutex_init(&mutexParty, NULL);
+  pthread_mutex_init(&mutexGame, NULL);
   //* Connection server<->clients
   // Initialize data transfer protocols
   //  - Msg, for Party structure
@@ -40,7 +40,7 @@ int main(int argc, char const* argv[]) {
   WaitingForPlayers( &lobby);
 
   //* Launch the game
-  //PlayAGame(msgId);
+  PlayAGame(&lobby);
 
 }
 

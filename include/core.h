@@ -28,7 +28,6 @@
 #define KEY_FILE "./key/key"
 #define PROJECT_ID 42
 
-#define FORBIDDEN_CHAR  "#@.*+"
 #define MAX_NUMBER_PLAYER 1
 
 #define MAX_PLAYER_NAME_LENGTH 64
@@ -72,3 +71,5 @@ void PrintMsgInfo();
 void CheckKeyFileExistence();
 
 int msgId;
+pthread_mutex_t gameLocker;
+pthread_cond_t gameUpdate;
