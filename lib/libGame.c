@@ -1,4 +1,4 @@
-#include "game.h"
+#include "../include/game.h"
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -237,7 +237,10 @@ bool CheckCollisionWithWalls(Game* game, Pos nextPosition) {
 }
 
 void InitAGame(Game* game) {
-    game->isInProgress = true;
+    //game->isInProgress = true;
+    pthread_mutex_init(&(game->gameLocker), NULL);
+    printf("C'est OK ici !\n");
+    pthread_cond_init(&(game->gameUpdate), NULL);
 
     InitGameBorders(game, GAME_WIDTH, GAME_HEIGHT);
     InitEmptyGameElements(game);

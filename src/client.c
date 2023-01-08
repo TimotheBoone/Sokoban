@@ -1,5 +1,5 @@
 /**
- * @file main.c
+ * @file client.c
  * @author Timothe Boone & Inès Guitton
  * @brief Client program
  * @version 1.0
@@ -9,58 +9,31 @@
 #include "../include/client.h"
 
 int main(int argc, char const* argv[]) {
-  // Initialization of variables
+  //* Initialization of variables
+
+  // Data transfer structures
   Player me;
-  Party myParty;
+  // Key known by server and clients
   key_t key;
+  // Ids of protocols that will transfer data server<->clients
   int msgId;
   int shmId;
-  int i;
-  char forbiddenString[SHM_SIZE];
-  // Initialize player structure
-  InitPlayer(&me);
 
+  //* Connection client<->server
+  // Initialize data transfer protocols
+  //  - Msg, for Party structure
+  //  - Shm, for forbidden character string
   InitClient(&msgId, &shmId);
 
-  // Find the message queue created by the server
-  //msgId = ThreadConnectsToMsg();
-  printf("main shm : %d\n", shmId);
-  // Retrieve the forbidden string from shared memory
-  
-  printf("Choose your character? (except %s) \n", GetForbiddenString(shmId));
-  // Creation of players
+  // Player structure filled by the user
   AskPlayerInfos(&me, shmId);
-
-  // Player created
   // Send my player to the server
   SendPlayerInAWrap(msgId, Wrap(me));
 
-  // Summary of the players registered in the game = lobby
-  myParty = WaitForAFullParty(msgId);
-  printf("Lancement du jeu\n");
-  // Store player
+  // Summary of the players registered in the game
+  WaitForAFullParty(msgId);
+
+  //* Game is ready, launch the game
+  PlayAGame(msgId);
+
 }
-/****************************************************** JEU ***************************************************************************/
-
-// Boite aux lettres
-// Chacun stock le sien
-
-// Game
-// Show map
-// Edit map
-// Edit map when input
-// Players movement
-// Boxes
-// # : mur
-// @ : caisse
-// . : destination
-// * : caisse sur une zone de rangement (pas présente dans ce niveau)
-// + : personnage sur une zone de rangement (pas présent dans ce niveau)
-
-// Destination
-// Walls
-// Dont go forward
-// Victory
-// Go back
-
-// Lock detection

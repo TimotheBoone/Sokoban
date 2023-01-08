@@ -7,10 +7,11 @@
  *
  *
  */
-#include <stdio.h>
+
+#include "game.h"
 #include <stdlib.h>
 #include <unistd.h>
-#include <pthread.h>
+
 #include <semaphore.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -23,11 +24,12 @@
 #include <sys/msg.h>
 #include <errno.h>
 
+
 #define KEY_FILE "./key/key"
 #define PROJECT_ID 42
 
 #define FORBIDDEN_CHAR  "#@.*+"
-#define MAX_NUMBER_PLAYER 3
+#define MAX_NUMBER_PLAYER 1
 
 #define MAX_PLAYER_NAME_LENGTH 64
 
@@ -59,6 +61,11 @@ typedef struct {
   long mtype;
   Party mtext;
 } WrapParty;
+
+typedef struct {
+  long mtype;
+  Game mtext;
+} WrapGame;
 
 key_t CreateKey();
 void PrintMsgInfo(int msgId);

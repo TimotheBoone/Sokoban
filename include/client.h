@@ -20,3 +20,6 @@ Party WaitForAFullParty(int msgId);
 void* ThreadConnectsToShm(void* arg) ;
 int InitClient(int* ptrMsgId, int* ptrShmId);
 char* GetForbiddenString(int shmId);
+void* ThreadReceivesGameUpdates(void* ptrMsgId);
+void PlayAGame(int msgId);
+void* ThreadDisplaysAGame(void* arg) ;
